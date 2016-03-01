@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+     Copyright 2005-2014 Red Hat, Inc.
+
+     Red Hat licenses this file to you under the Apache License, version
+     2.0 (the "License"); you may not use this file except in compliance
+     with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+     implied.  See the License for the specific language governing
+     permissions and limitations under the License.
+
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+  <camelContext xmlns="http://camel.apache.org/schema/spring">
+  <route group="the content of the file is the following ${body}" id="timerToLog">
+    <from uri="file:C:\\Files\\input\\"/>
+    <log message="the content of the file is the following ${body}" id="_log1"/>
+    <choice id="_choice1">
+      <when>
+        <simple>body.customerComplaint.version==1</simple>
+        <to uri="file:C:\\Files\\output\\" id="_to1"/>
+      </when>
+      <when>
+        <simple>body.customerComplaint.version==2</simple>
+        <to uri="file:C:\\Files\\output2\\" id="_to2"/>
+      </when>
+      <otherwise>
+        <to uri="file:C:\\Files\\errors\\" id="_to3"/>
+      </otherwise>
+    </choice>
+    <onException>
+      <exception>org.xml.sax.SAXParseException</exception>
+      <exception>org.apache.camel.language.bean.RuntimeBeanExpressionException</exception>
+      <retryWhile>
+        <simple></simple>
+      </retryWhile>
+      <handled>
+        <simple></simple>
+      </handled>
+      <log message="the following exception has been catch ${exception}" id="_log2"/>
+      <to uri="file:C:\\Files\\errors\\"/>
+    </onException>
+  </route>
+</camelContext>
+
+</beans>

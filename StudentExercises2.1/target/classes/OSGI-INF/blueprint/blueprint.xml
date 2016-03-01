@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:camel="http://camel.apache.org/schema/spring"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+ <bean id="randomProcessor" class="org.blogdemo.errordemo.RandomProcessor"/>
+
+  <camelContext trace="false" errorHandlerRef="defaultErrorHandler" id="blueprintContext" xmlns="http://camel.apache.org/schema/blueprint">
+  <errorHandler type="LoggingErrorHandler" id="defaultErrorHandler">
+    <redeliveryPolicy maximumRedeliveries="1" redeliveryDelay="5000" retryAttemptedLogLevel="DEBUG"/>
+  </errorHandler>
+  <onException>
+    <exception>java.io.FileNotFoundException</exception>
+    <redeliveryPolicy maximumRedeliveries="2" redeliveryDelay="3000" retryAttemptedLogLevel="INFO"/>
+  </onException>
+  <onException>
+    <exception>org.apache.camel.processor.validation.SchemaValidationException</exception>
+    <redeliveryPolicy maximumRedeliveries="2" redeliveryDelay="3000" retryAttemptedLogLevel="INFO"/>
+  </onException>
+  <route>
+    <from uri="file://c:\\Files\\input"/>
+    <to uri="validator:file:schema/singletrade.xsd" id="_to1"/>
+    <to uri="file://c:\\Files\\ouput" id="_to2"/>
+  </route>
+  <route errorHandlerRef="defaultErrorHandler">
+    <from uri="direct://randomProcess"/>
+    <log message="Processed file ${header.CamelFileName}"/>
+    <bean ref="randomProcessor"/>
+    <to uri="file://data"/>
+  </route>
+</camelContext>
+</beans>
