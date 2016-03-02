@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.0.xsd">
+
+	<bean id="customConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">
+		<property name="host" value="localhost" />
+		<property name="port" value="5672" />
+		<property name="username" value="guest" />
+		<property name="password" value="guest" />
+	</bean>
+
+
+
+	<!-- By defining a JmsComponent called jms you can use the JMS transport 
+		in routes You may define several of these components if you have different 
+		JMS servers for different services. They can be distinguished in the routes 
+		by their id -->
+
+	<!-- <bean id="jms" class="org.apache.camel.component.jms.JmsComponent"> 
+		<property name="connectionFactory" ref="jmsConnectionFactory" /> <property 
+		name="useMessageIDAsCorrelationID" value="true" /> </bean> -->
+	<camelContext xmlns="http://camel.apache.org/schema/spring">
+
+
+		<route>
+			<from uri="direct:rabbitMQEx2" />
+			<to uri="rabbitmq://localhost:5672/ex2"/>
+		 </route>
+	</camelContext>
+
+</beans>
