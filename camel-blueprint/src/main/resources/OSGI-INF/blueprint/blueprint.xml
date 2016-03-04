@@ -23,6 +23,9 @@
                 <to uri="log:xml?level=WARN"/>
             </doCatch>
             <doFinally>
+                <transform>
+                    <constant>This always happens!</constant>
+                </transform>
                 <to uri="log:xml?level=WARN"/>
             </doFinally>
         </doTry>
