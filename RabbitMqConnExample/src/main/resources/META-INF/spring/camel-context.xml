@@ -17,23 +17,27 @@
 	</bean>
 
 	<camelContext errorHandlerRef="myErrorHandler" xmlns="http://camel.apache.org/schema/spring">
-    <errorHandler type="DeadLetterChannel" deadLetterUri="rabbitmq://localhost:5672/dead.letter.test?queue=dead.letter.queue&amp;routingKey=dead.letter.queue&amp;exchangeType=fanout&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true&amp;BridgeEndpoint=true" id="myErrorHandler">
+    <errorHandler type="DeadLetterChannel" deadLetterUri="rabbitmq://localhost:5672/dead.letter.test?queue=dead.letter.queue&amp;routingKey=dead.letter.queue&amp;exchangeType=direct&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true&amp;BridgeEndpoint=true" id="myErrorHandler">
         <redeliveryPolicy maximumRedeliveries="1" redeliveryDelay="5000" retryAttemptedLogLevel="DEBUG"/>
     </errorHandler>
     <route>
         <from uri="rabbitmq://localhost:5672/ex2?queue=test.in&amp;routingKey=test.in&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true&amp;BridgeEndpoint=true"/>
         <log message="the content of the payload is ${body}"/>
-        <to uri="rabbitmq://localhost:5672/ex2?queue=tes.out&amp;routingKey=test.out&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true&amp;BridgeEndpoint=true&amp;durable=true"/>
+        <to uri="rabbitmq://localhost:5672/ex2?queue=test.out&amp;routingKey=test.out&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true"/>
     </route>
     <route>
-        <from uri="rabbitmq://localhost:5672/ex2?queue=test.out&amp;routingKey=test.out&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true&amp;BridgeEndpoint=true"/>
-        <to uri="validator:file:schema/invoice.xsd"/>
+        <from uri="rabbitmq://localhost:5672/ex2?queue=test.out&amp;routingKey=test.out&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true&amp;BridgeEndpoint=true&amp;durable=true"/>
+        <log message="Message before validation"/>
+        <!-- <to uri="validator:file:schema/invoice.xsd"/>-->
+        <log message="content validated correctly"/>
         <choice>
             <when>
                 <xpath>/customerCompliant/version=3</xpath>
+                <log message="content is version 3"/>
                 <to uri="rabbitmq://localhost:5672/ex2?queue=test.compliant_true&amp;routingKey=test.compliant_true&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true&amp;BridgeEndpoint=true&amp;durable=true"/>
             </when>
             <otherwise>
+                <log message="content is not version 3"/>
                 <to uri="rabbitmq://localhost:5672/ex2?queue=test.compliant_false&amp;routingKey=test.compliant_false&amp;connectionFactory=#customConnectionFactory&amp;autoDelete=false&amp;autoAck=true&amp;BridgeEndpoint=true&amp;durable=true"/>
             </otherwise>
         </choice>
